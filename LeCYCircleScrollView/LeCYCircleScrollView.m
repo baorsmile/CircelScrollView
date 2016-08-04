@@ -131,18 +131,18 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 {
     __weak typeof(self) weakSelf = self;
     [self.collectionView performBatchUpdates:^{
-        [self.collectionView reloadData];
+        [weakSelf.collectionView reloadData];
     } completion:^(BOOL finished) {
-        if (self.currentNumber > 1) {
-            if (CGPointEqualToPoint(self.collectionView.contentOffset, CGPointZero)) {
-                [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]
-                                            atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally
-                                                    animated:NO];
-                [self reportStatus];
+        if (weakSelf.currentNumber > 1) {
+            if (CGPointEqualToPoint(weakSelf.collectionView.contentOffset, CGPointZero)) {
+                [weakSelf.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]
+                                                atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally
+                                                        animated:NO];
+                [weakSelf reportStatus];
             }
         }
         
-        [self setUpTimer];
+        [weakSelf setUpTimer];
     }];
 }
 
