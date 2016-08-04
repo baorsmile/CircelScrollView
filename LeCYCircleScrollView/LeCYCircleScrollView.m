@@ -129,6 +129,7 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 #pragma mark - Evnet
 - (void)reloadData
 {
+    __weak typeof(self) weakSelf = self;
     [self.collectionView performBatchUpdates:^{
         [self.collectionView reloadData];
     } completion:^(BOOL finished) {
