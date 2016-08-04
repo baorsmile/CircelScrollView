@@ -24,6 +24,8 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 
 @implementation LeCYCircleScrollView
 
+@synthesize circleFlowLayout = _circleFlowLayout;
+
 - (instancetype)initWithFrame:(CGRect)frame collectionViewLayout:(nonnull UICollectionViewLayout *)layout
 {
     self = [super initWithFrame:frame];
@@ -51,6 +53,14 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
         _collectionView.decelerationRate = UIScrollViewDecelerationRateFast;
     }
     return _collectionView;
+}
+
+- (LeCYCircleViewFlowLayout *)circleFlowLayout
+{
+    if (!_circleFlowLayout) {
+        _circleFlowLayout = [[LeCYCircleViewFlowLayout alloc] init];
+    }
+    return _circleFlowLayout;
 }
 
 - (NSInteger)currentNumber
@@ -211,7 +221,10 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    return [self.dataSource circleScrollView:self cellForItemAtIndex:[self cellForItemAtIndexPath:indexPath].item];
+    if ([self.dataSource respondsToSelector:@selector(circleScrollView:cellForItemAtIndex:)]) {
+        [self.dataSource circleScrollView:self cellForItemAtIndex:[self cellForItemAtIndexPath:indexPath].item];
+    }
+    return nil;
 }
 
 #pragma mark - UICollectionViewDelegate

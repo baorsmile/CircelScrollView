@@ -64,7 +64,7 @@
 - (void)reloadData;
 
 /**
- *  初始化
+ *  初始化 (如果选择不赋值layout，要手动赋值circleFlowLayout)
  *
  *  @param frame  传入的frame
  *  @param layout 布局配置
