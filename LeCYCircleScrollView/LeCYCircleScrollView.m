@@ -12,6 +12,18 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
     return [NSIndexPath indexPathForItem:index inSection:0];
 }
 
+#define weakify( x ) \
+    _Pragma("clang diagnostic push") \
+    _Pragma("clang diagnostic ignored \"-Wshadow\"") \
+    autoreleasepool{} __weak __typeof__(x) __weak_##x##__ = x; \
+    _Pragma("clang diagnostic pop")
+
+#define strongify( x ) \
+    _Pragma("clang diagnostic push") \
+    _Pragma("clang diagnostic ignored \"-Wshadow\"") \
+    try{} @finally{} __typeof__(x) x = __weak_##x##__; \
+    _Pragma("clang diagnostic pop")
+
 @interface LeCYCircleScrollView () <UICollectionViewDelegate, UICollectionViewDataSource>
 @property (nonatomic, strong) UICollectionView *collectionView;
 @property (nonatomic, strong) NSTimer *timer;
@@ -129,20 +141,22 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 #pragma mark - Evnet
 - (void)reloadData
 {
-    __weak typeof(self) weakSelf = self;
+    @weakify(self);
     [self.collectionView performBatchUpdates:^{
-        [weakSelf.collectionView reloadData];
+        @strongify(self);
+        [self.collectionView reloadData];
     } completion:^(BOOL finished) {
-        if (weakSelf.currentNumber > 1) {
-            if (CGPointEqualToPoint(weakSelf.collectionView.contentOffset, CGPointZero)) {
-                [weakSelf.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]
-                                                atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally
-                                                        animated:NO];
+        @strongify(self);
+        if (self.currentNumber > 1) {
+            if (CGPointEqualToPoint(self.collectionView.contentOffset, CGPointZero)) {
+                [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]
+                                            atScrollPosition:UICollectionViewScrollPositionCenteredHorizontally
+                                                    animated:NO];
                 [self reportStatus];
             }
         }
         
-        [weakSelf setUpTimer];
+        [self setUpTimer];
     }];
 }
 
@@ -222,7 +236,7 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
     if ([self.dataSource respondsToSelector:@selector(circleScrollView:cellForItemAtIndex:)]) {
-        [self.dataSource circleScrollView:self cellForItemAtIndex:[self cellForItemAtIndexPath:indexPath].item];
+        return [self.dataSource circleScrollView:self cellForItemAtIndex:[self cellForItemAtIndexPath:indexPath].item];
     }
     return nil;
 }
