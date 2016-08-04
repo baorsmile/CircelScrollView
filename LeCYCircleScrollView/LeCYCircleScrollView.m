@@ -12,18 +12,6 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
     return [NSIndexPath indexPathForItem:index inSection:0];
 }
 
-#define weakify( x ) \
-    _Pragma("clang diagnostic push") \
-    _Pragma("clang diagnostic ignored \"-Wshadow\"") \
-    autoreleasepool{} __weak __typeof__(x) __weak_##x##__ = x; \
-    _Pragma("clang diagnostic pop")
-
-#define strongify( x ) \
-    _Pragma("clang diagnostic push") \
-    _Pragma("clang diagnostic ignored \"-Wshadow\"") \
-    try{} @finally{} __typeof__(x) x = __weak_##x##__; \
-    _Pragma("clang diagnostic pop")
-
 @interface LeCYCircleScrollView () <UICollectionViewDelegate, UICollectionViewDataSource>
 @property (nonatomic, strong) UICollectionView *collectionView;
 @property (nonatomic, strong) NSTimer *timer;
@@ -141,12 +129,9 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 #pragma mark - Evnet
 - (void)reloadData
 {
-    @weakify(self);
     [self.collectionView performBatchUpdates:^{
-        @strongify(self);
         [self.collectionView reloadData];
     } completion:^(BOOL finished) {
-        @strongify(self);
         if (self.currentNumber > 1) {
             if (CGPointEqualToPoint(self.collectionView.contentOffset, CGPointZero)) {
                 [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]
