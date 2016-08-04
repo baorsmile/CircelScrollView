@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "CircelScrollView"
-  s.version      = "0.0.1"
+  s.version      = "1.0"
   s.summary      = ""
 
   # This description is used to generate tags and improve search results.
@@ -79,7 +79,7 @@ Pod::Spec.new do |s|
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/tiandabao/CircelScrollView.git", :commit => "543aa8e94c661b374701b47f42351026b0c62544" }
+  s.source       = { :git => "https://github.com/tiandabao/CircelScrollView.git", :tag => "#{s.version}" }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -90,7 +90,7 @@ Pod::Spec.new do |s|
   #  Not including the public_header_files will make all headers public.
   #
 
-  s.source_files  = "LeCYCircleView/LeCYCircleScrollView/*.{h,m}"
+  s.source_files  = "CircelScrollView", "CircelScrollView/LeCYCircleScrollView/*.{h,m}"
   s.exclude_files = "Classes/Exclude"
 
   # s.public_header_files = "Classes/**/*.h"
