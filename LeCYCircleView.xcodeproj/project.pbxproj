@@ -14,7 +14,6 @@
 		E714186B1D5184190060A115 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E714186A1D5184190060A115 /* Assets.xcassets */; };
 		E714186E1D5184190060A115 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E714186C1D5184190060A115 /* LaunchScreen.storyboard */; };
 		E714187A1D5184200060A115 /* LeCYCircleScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = E71418771D5184200060A115 /* LeCYCircleScrollView.m */; };
-		E714187B1D5184200060A115 /* LeCYCircleViewFlowLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = E71418791D5184200060A115 /* LeCYCircleViewFlowLayout.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,8 +29,6 @@
 		E714186F1D5184190060A115 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E71418761D5184200060A115 /* LeCYCircleScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeCYCircleScrollView.h; sourceTree = "<group>"; };
 		E71418771D5184200060A115 /* LeCYCircleScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LeCYCircleScrollView.m; sourceTree = "<group>"; };
-		E71418781D5184200060A115 /* LeCYCircleViewFlowLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeCYCircleViewFlowLayout.h; sourceTree = "<group>"; };
-		E71418791D5184200060A115 /* LeCYCircleViewFlowLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LeCYCircleViewFlowLayout.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,8 +88,6 @@
 			children = (
 				E71418761D5184200060A115 /* LeCYCircleScrollView.h */,
 				E71418771D5184200060A115 /* LeCYCircleScrollView.m */,
-				E71418781D5184200060A115 /* LeCYCircleViewFlowLayout.h */,
-				E71418791D5184200060A115 /* LeCYCircleViewFlowLayout.m */,
 			);
 			path = LeCYCircleScrollView;
 			sourceTree = "<group>";
@@ -169,7 +164,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				E71418661D5184190060A115 /* ViewController.m in Sources */,
-				E714187B1D5184200060A115 /* LeCYCircleViewFlowLayout.m in Sources */,
 				E71418631D5184190060A115 /* AppDelegate.m in Sources */,
 				E714187A1D5184200060A115 /* LeCYCircleScrollView.m in Sources */,
 				E71418601D5184190060A115 /* main.m in Sources */,
@@ -321,6 +315,7 @@
 				E71418741D5184190060A115 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

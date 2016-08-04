@@ -40,3 +40,9 @@
 - (nullable __kindof UICollectionViewCell *)dequeueIdentifier:(nullable NSString *)identifier forIndex:(NSInteger)index;
 @end
 
+
+@interface LeCYCircleViewFlowLayout : UICollectionViewFlowLayout
+@property (nonatomic, assign) CGFloat itemScale;
+@property (nonatomic, assign) CGFloat alphaScale;
+@end
+
