@@ -14,19 +14,21 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 
 @interface LeCYCircleScrollView () <UICollectionViewDelegate, UICollectionViewDataSource>
 @property (nonatomic, strong) UICollectionView *collectionView;
-@property (nonatomic, strong) LeCYCircleViewFlowLayout *flowLayout;
 @property (nonatomic, strong) NSTimer *timer;
 @property (nonatomic, assign) NSInteger currentNumber;          // 处理过的个数
 @property (nonatomic, assign) NSInteger originalNumber;         // 原始数据个数
 @property (nonatomic, getter=isOnlyOneItem) BOOL onlyOneItem;   // 是否只有一个数据，单独处理
+@property (nonatomic, assign) CGFloat leftRightMargin;          // 两头的空间（出去cell）
+@property (nonatomic, assign) CGFloat itemSizeMarigin;          // cell大小加上空隙
 @end
 
 @implementation LeCYCircleScrollView
+
 - (instancetype)initWithFrame:(CGRect)frame collectionViewLayout:(nonnull UICollectionViewLayout *)layout
 {
     self = [super initWithFrame:frame];
     if (self) {
-        self.flowLayout = (LeCYCircleViewFlowLayout *)layout;
+        self.circleFlowLayout = (LeCYCircleViewFlowLayout *)layout;
         [self addSubview:self.collectionView];
     }
     return self;
@@ -34,7 +36,7 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 
 - (instancetype)initWithFrame:(CGRect)frame
 {
-    self = [self initWithFrame:frame collectionViewLayout:self.flowLayout];
+    self = [self initWithFrame:frame collectionViewLayout:self.circleFlowLayout];
     if (self) {}
     return self;
 }
@@ -43,21 +45,12 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 - (UICollectionView *)collectionView
 {
     if (!_collectionView) {
-        _collectionView = [[UICollectionView alloc] initWithFrame:self.bounds collectionViewLayout:self.flowLayout];
+        _collectionView = [[UICollectionView alloc] initWithFrame:self.bounds collectionViewLayout:self.circleFlowLayout];
         _collectionView.delegate = self;
         _collectionView.dataSource = self;
         _collectionView.decelerationRate = UIScrollViewDecelerationRateFast;
     }
     return _collectionView;
-}
-
-- (LeCYCircleViewFlowLayout *)flowLayout
-{
-    if (!_flowLayout) {
-        _flowLayout = [[LeCYCircleViewFlowLayout alloc] init];
-        _flowLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
-    }
-    return _flowLayout;
 }
 
 - (NSInteger)currentNumber
@@ -74,7 +67,9 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 - (NSInteger)originalNumber
 {
     if (_originalNumber == 0) {
-        _originalNumber = [self.dataSource numberOfItemsInCircleScrollView:self];
+        if ([self.dataSource respondsToSelector:@selector(numberOfItemsInCircleScrollView:)]) {
+            _originalNumber = [self.dataSource numberOfItemsInCircleScrollView:self];
+        } else { _originalNumber = 0; }
     }
     return _originalNumber;
 }
@@ -87,6 +82,22 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
     return NO;
 }
 
+- (CGFloat)leftRightMargin
+{
+    if (_leftRightMargin == 0) {
+        _leftRightMargin = (self.collectionView.bounds.size.width - self.circleFlowLayout.itemSize.width - self.circleFlowLayout.minimumLineSpacing * 2) / 2;
+    }
+    return _leftRightMargin;
+}
+
+- (CGFloat)itemSizeMarigin
+{
+    if (_itemSizeMarigin == 0) {
+        _itemSizeMarigin = self.circleFlowLayout.itemSize.width + self.circleFlowLayout.minimumLineSpacing;
+    }
+    return _itemSizeMarigin;
+}
+
 #pragma mark - Set
 - (void)setAutoCircleScroll:(BOOL)autoCircleScroll
 {
@@ -97,6 +108,12 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 - (void)setTimeInterval:(NSTimeInterval)timeInterval {
     _timeInterval = timeInterval;
     [self setUpTimer];
+}
+
+- (void)setCircleFlowLayout:(LeCYCircleViewFlowLayout *)circleFlowLayout
+{
+    _circleFlowLayout = circleFlowLayout;
+    self.collectionView.collectionViewLayout = circleFlowLayout;
 }
 
 #pragma mark - Evnet
@@ -150,7 +167,7 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 
 - (void)reportStatus
 {
-    NSInteger pageIndex = (self.collectionView.contentOffset.x + self.flowLayout.itemSize.width + self.flowLayout.minimumLineSpacing) / (self.flowLayout.itemSize.width + self.flowLayout.minimumLineSpacing);
+    NSInteger pageIndex = (self.collectionView.contentOffset.x + self.itemSizeMarigin) / self.itemSizeMarigin;
     NSIndexPath *indexPath = [self cellForItemAtIndexPath:CircleIndexPath(pageIndex)];
     if (self.delegate && [self.delegate respondsToSelector:@selector(circleScrollView:displayCellAtIndex:)]) {
         [self.delegate circleScrollView:self displayCellAtIndex:indexPath.item];
@@ -163,7 +180,7 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 {
     [self tearDownTimer];
     
-    if (!self.autoCircleScroll || self.currentNumber <= 1) return;
+    if (!self.autoCircleScroll || self.onlyOneItem) return;
     
     self.timer = [NSTimer timerWithTimeInterval:self.timeInterval
                                          target:self
@@ -181,7 +198,7 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 - (void)timerFire:(NSTimer *)timer
 {
     CGFloat currentOffset = self.collectionView.contentOffset.x;
-    CGFloat targetOffset  = currentOffset + self.flowLayout.itemSize.width + self.flowLayout.minimumLineSpacing;
+    CGFloat targetOffset  = currentOffset + self.itemSizeMarigin;
     
     [self.collectionView setContentOffset:CGPointMake(targetOffset, self.collectionView.contentOffset.y) animated:YES];
 }
@@ -209,12 +226,10 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     if (self.currentNumber > 1) {
-        CGFloat kCellSpaceHeader = (self.collectionView.bounds.size.width - self.flowLayout.itemSize.width - self.flowLayout.minimumLineSpacing* 2) / 2;
-        CGFloat kCellContentSizeWidth = self.flowLayout.minimumLineSpacing + self.flowLayout.itemSize.width;
-        if (scrollView.contentOffset.x < self.flowLayout.itemSize.width - kCellSpaceHeader) {
-            [scrollView setContentOffset:CGPointMake(scrollView.contentOffset.x + kCellContentSizeWidth * (self.currentNumber - 4), 0)];
-        } else if (scrollView.contentOffset.x > (kCellContentSizeWidth * (self.currentNumber - 2)) + kCellSpaceHeader) {
-            [scrollView setContentOffset:CGPointMake(scrollView.contentOffset.x - kCellContentSizeWidth * (self.currentNumber - 4), 0)];
+        if (scrollView.contentOffset.x < self.circleFlowLayout.itemSize.width - self.leftRightMargin) {
+            [scrollView setContentOffset:CGPointMake(scrollView.contentOffset.x + self.itemSizeMarigin * (self.currentNumber - 4), 0)];
+        } else if (scrollView.contentOffset.x > (self.itemSizeMarigin * (self.currentNumber - 2)) + self.leftRightMargin) {
+            [scrollView setContentOffset:CGPointMake(scrollView.contentOffset.x - self.itemSizeMarigin * (self.currentNumber - 4), 0)];
         }
     }
 }
