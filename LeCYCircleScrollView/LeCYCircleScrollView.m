@@ -16,17 +16,26 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 @property (nonatomic, strong) UICollectionView *collectionView;
 @property (nonatomic, strong) LeCYCircleViewFlowLayout *flowLayout;
 @property (nonatomic, strong) NSTimer *timer;
-@property (nonatomic, assign) NSInteger currentNumber;      // 处理过的个数
-@property (nonatomic, assign) NSInteger originalNumber;     // 原始数据个数
+@property (nonatomic, assign) NSInteger currentNumber;          // 处理过的个数
+@property (nonatomic, assign) NSInteger originalNumber;         // 原始数据个数
+@property (nonatomic, getter=isOnlyOneItem) BOOL onlyOneItem;   // 是否只有一个数据，单独处理
 @end
 
 @implementation LeCYCircleScrollView
-- (instancetype)initWithFrame:(CGRect)frame
+- (instancetype)initWithFrame:(CGRect)frame collectionViewLayout:(nonnull UICollectionViewLayout *)layout
 {
     self = [super initWithFrame:frame];
     if (self) {
+        self.flowLayout = (LeCYCircleViewFlowLayout *)layout;
         [self addSubview:self.collectionView];
     }
+    return self;
+}
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [self initWithFrame:frame collectionViewLayout:self.flowLayout];
+    if (self) {}
     return self;
 }
 
@@ -70,17 +79,15 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
     return _originalNumber;
 }
 
+- (BOOL)isOnlyOneItem
+{
+    if (self.currentNumber <= 1) {
+        return YES;
+    }
+    return NO;
+}
+
 #pragma mark - Set
-- (void)setItemSize:(CGSize)itemSize {
-    _itemSize = itemSize;
-    self.flowLayout.itemSize = itemSize;
-}
-
-- (void)setItemSpacing:(CGFloat)itemSpacing {
-    _itemSpacing = itemSpacing;
-    self.flowLayout.minimumLineSpacing = itemSpacing;
-}
-
 - (void)setAutoCircleScroll:(BOOL)autoCircleScroll
 {
     _autoCircleScroll = autoCircleScroll;
@@ -91,20 +98,6 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
     _timeInterval = timeInterval;
     [self setUpTimer];
 }
-
-- (void)setItemScale:(CGFloat)itemScale
-{
-    _itemScale = itemScale;
-    self.flowLayout.itemScale = itemScale;
-
-}
-
-- (void)setAlphaScale:(CGFloat)alphaScale
-{
-    _alphaScale = alphaScale;
-    self.flowLayout.alphaScale = alphaScale;
-}
-
 
 #pragma mark - Evnet
 - (void)reloadData
@@ -138,7 +131,7 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 
 - (NSIndexPath *)cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (self.currentNumber <= 1) {
+    if (self.onlyOneItem) {
         return indexPath;
     }
     
@@ -157,7 +150,7 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 
 - (void)reportStatus
 {
-    NSInteger pageIndex = (self.collectionView.contentOffset.x + self.itemSize.width + self.itemSpacing) / (self.itemSize.width + self.itemSpacing);
+    NSInteger pageIndex = (self.collectionView.contentOffset.x + self.flowLayout.itemSize.width + self.flowLayout.minimumLineSpacing) / (self.flowLayout.itemSize.width + self.flowLayout.minimumLineSpacing);
     NSIndexPath *indexPath = [self cellForItemAtIndexPath:CircleIndexPath(pageIndex)];
     if (self.delegate && [self.delegate respondsToSelector:@selector(circleScrollView:displayCellAtIndex:)]) {
         [self.delegate circleScrollView:self displayCellAtIndex:indexPath.item];
@@ -188,7 +181,7 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 - (void)timerFire:(NSTimer *)timer
 {
     CGFloat currentOffset = self.collectionView.contentOffset.x;
-    CGFloat targetOffset  = currentOffset + self.itemSize.width + self.itemSpacing;
+    CGFloat targetOffset  = currentOffset + self.flowLayout.itemSize.width + self.flowLayout.minimumLineSpacing;
     
     [self.collectionView setContentOffset:CGPointMake(targetOffset, self.collectionView.contentOffset.y) animated:YES];
 }
@@ -216,9 +209,9 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     if (self.currentNumber > 1) {
-        CGFloat kCellSpaceHeader = (self.collectionView.bounds.size.width - self.itemSize.width - self.itemSpacing * 2) / 2;
-        CGFloat kCellContentSizeWidth = self.itemSpacing + self.itemSize.width;
-        if (scrollView.contentOffset.x < self.itemSize.width - kCellSpaceHeader) {
+        CGFloat kCellSpaceHeader = (self.collectionView.bounds.size.width - self.flowLayout.itemSize.width - self.flowLayout.minimumLineSpacing* 2) / 2;
+        CGFloat kCellContentSizeWidth = self.flowLayout.minimumLineSpacing + self.flowLayout.itemSize.width;
+        if (scrollView.contentOffset.x < self.flowLayout.itemSize.width - kCellSpaceHeader) {
             [scrollView setContentOffset:CGPointMake(scrollView.contentOffset.x + kCellContentSizeWidth * (self.currentNumber - 4), 0)];
         } else if (scrollView.contentOffset.x > (kCellContentSizeWidth * (self.currentNumber - 2)) + kCellSpaceHeader) {
             [scrollView setContentOffset:CGPointMake(scrollView.contentOffset.x - kCellContentSizeWidth * (self.currentNumber - 4), 0)];
@@ -228,14 +221,14 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
-    if (self.currentNumber > 1) {
+    if (self.onlyOneItem) {
         [self tearDownTimer];
     }
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
-    if (self.currentNumber > 1) {
+    if (self.onlyOneItem) {
         [self setUpTimer];
     }
 }
@@ -259,6 +252,7 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
     if (self) {
         self.itemScale = 1.0;
         self.alphaScale = 1.0;
+        self.scrollDirection = UICollectionViewScrollDirectionHorizontal;
     }
     return self;
 }
@@ -274,7 +268,7 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
     CGFloat centerX = self.collectionView.contentOffset.x + self.collectionView.bounds.size.width * 0.5;
     for (UICollectionViewLayoutAttributes *layoutAttributes in attributes) {
         CGFloat distance = ABS(layoutAttributes.center.x - centerX);
-        CGFloat scale = self.itemScale + (1 - self.itemScale) * (1 - distance /(self.itemSize.width + self.minimumLineSpacing));
+        CGFloat scale = self.itemScale + (1 - self.itemScale) * (1 - distance / (self.itemSize.width + self.minimumLineSpacing));
         layoutAttributes.transform = CGAffineTransformMakeScale(scale, scale);
     }
     

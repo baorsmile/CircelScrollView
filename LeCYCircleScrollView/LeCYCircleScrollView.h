@@ -12,7 +12,7 @@
 
 @protocol LeCYCircleScrollViewDataSource <NSObject>
 - (NSInteger)numberOfItemsInCircleScrollView:(nullable LeCYCircleScrollView *)circleScrollView;
-- (nullable UICollectionViewCell *)circleScrollView:(nullable LeCYCircleScrollView *)circleScrollView cellForItemAtIndex:(NSInteger)index;
+- (nonnull UICollectionViewCell *)circleScrollView:(nullable LeCYCircleScrollView *)circleScrollView cellForItemAtIndex:(NSInteger)index;
 @end
 
 @protocol LeCYCircleScrollViewDelegate <NSObject>
@@ -28,16 +28,12 @@
 @property (nonatomic, assign) BOOL autoCircleScroll;
 @property (nonatomic, assign) NSTimeInterval timeInterval;
 
-/** Layout **/
-@property (nonatomic, assign) CGSize itemSize;
-@property (nonatomic, assign) CGFloat itemSpacing;
-@property (nonatomic, assign) CGFloat itemScale;
-@property (nonatomic, assign) CGFloat alphaScale;
-
 - (void)reloadData;
 
-- (void)registerClass:(nullable Class)cellClass identifier:(nullable NSString *)identifier;
-- (nullable __kindof UICollectionViewCell *)dequeueIdentifier:(nullable NSString *)identifier forIndex:(NSInteger)index;
+- (nonnull instancetype)initWithFrame:(CGRect)frame collectionViewLayout:(nonnull UICollectionViewLayout *)layout;
+
+- (void)registerClass:(nonnull Class)cellClass identifier:(nonnull NSString *)identifier;
+- (nonnull __kindof UICollectionViewCell *)dequeueIdentifier:(nonnull NSString *)identifier forIndex:(NSInteger)index;
 @end
 
 

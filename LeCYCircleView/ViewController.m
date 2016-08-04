@@ -40,17 +40,17 @@
 - (LeCYCircleScrollView *)circelScrollView
 {
     if (!_circelScrollView) {
-        _circelScrollView = [[LeCYCircleScrollView alloc] initWithFrame:CGRectMake(0, 20, 375, 220)];
+        LeCYCircleViewFlowLayout *flowLayout = [[LeCYCircleViewFlowLayout alloc] init];
+        flowLayout.itemSize = CGSizeMake(300, 193);
+        flowLayout.minimumLineSpacing = 3;
+        flowLayout.itemScale = 0.95;
+        flowLayout.alphaScale = 0.6;
+        _circelScrollView = [[LeCYCircleScrollView alloc] initWithFrame:CGRectMake(0, 20, 375, 220) collectionViewLayout:flowLayout];
         _circelScrollView.dataSource = self;
         _circelScrollView.delegate = self;
-        
-        _circelScrollView.itemSize = CGSizeMake(300, 193);
-        _circelScrollView.itemSpacing = 3;
-        
         _circelScrollView.autoCircleScroll = YES;
         _circelScrollView.timeInterval = 2;
         
-        _circelScrollView.itemScale = 0.95;
         [_circelScrollView registerClass:[UICollectionViewCell class] identifier:@"MY"];
     }
     return _circelScrollView;
@@ -96,12 +96,12 @@
 
 - (void)circleScrollView:(LeCYCircleScrollView *)circleScrollView didSelectItemAtIndex:(NSInteger)index
 {
-    NSLog(@"indexPath item %ld", (long)index);
+    NSLog(@"didSelectItemAtIndex %ld", (long)index);
 }
 
 - (void)circleScrollView:(LeCYCircleScrollView *)circleScrollView displayCellAtIndex:(NSInteger)index
 {
-    NSLog(@"displayCellAtIndex %d", index);
+    NSLog(@"displayCellAtIndex %ld", (long)index);
     self.pageControl.currentPage = index;
 }
 
