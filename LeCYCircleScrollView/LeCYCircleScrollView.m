@@ -130,8 +130,8 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 - (void)reloadData
 {
     __weak typeof(self) weakSelf = self;
+    [weakSelf.collectionView reloadData];
     [self.collectionView performBatchUpdates:^{
-        [weakSelf.collectionView reloadData];
     } completion:^(BOOL finished) {
         if (weakSelf.currentNumber > 1) {
             if (CGPointEqualToPoint(weakSelf.collectionView.contentOffset, CGPointZero)) {
@@ -249,16 +249,16 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
-    if (self.onlyOneItem) {
-        [self tearDownTimer];
-    }
+    if (!self.autoCircleScroll || self.onlyOneItem) return;
+    
+    [self tearDownTimer];
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
-    if (self.onlyOneItem) {
-        [self setUpTimer];
-    }
+    if (!self.autoCircleScroll || self.onlyOneItem) return;
+ 
+    [self setUpTimer];
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {

@@ -48,7 +48,7 @@
         _circelScrollView = [[LeCYCircleScrollView alloc] initWithFrame:CGRectMake(0, 20, 375, 220) collectionViewLayout:flowLayout];
         _circelScrollView.dataSource = self;
         _circelScrollView.delegate = self;
-        _circelScrollView.autoCircleScroll = YES;
+        _circelScrollView.autoCircleScroll = NO;
         _circelScrollView.timeInterval = 2;
         
         [_circelScrollView registerClass:[UICollectionViewCell class] identifier:@"MY"];
