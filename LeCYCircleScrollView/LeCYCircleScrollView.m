@@ -18,7 +18,7 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 @property (nonatomic, assign) NSInteger currentNumber;          // 处理过的个数
 @property (nonatomic, assign) NSInteger originalNumber;         // 原始数据个数
 @property (nonatomic, getter=isOnlyOneItem) BOOL onlyOneItem;   // 是否只有一个数据，单独处理
-@property (nonatomic, assign) CGFloat leftRightMargin;          // 两头的空间（出去cell）
+@property (nonatomic, assign) CGFloat leftRightMargin;          // 两头的空间（除去cell）
 @property (nonatomic, assign) CGFloat itemSizeMarigin;          // cell大小加上空隙
 @end
 
@@ -266,7 +266,34 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 }
 
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
+    CGPoint targetOffset = [self nearestTargetOffsetForOffset:scrollView.contentOffset];
+    if (!CGPointEqualToPoint(targetOffset, scrollView.contentOffset)) {
+        [self.collectionView setContentOffset:targetOffset animated:NO];
+    }
+    
     [self reportStatus];
+}
+
+- (BOOL)scrollViewShouldScrollToTop:(UIScrollView *)scrollView
+{
+    return NO;
+}
+
+- (void)scrollViewWillEndDragging:(UIScrollView *)scrollView
+                     withVelocity:(CGPoint)velocity
+              targetContentOffset:(inout CGPoint *)targetContentOffset
+{
+    CGPoint targetOffset = [self nearestTargetOffsetForOffset:*targetContentOffset];
+    targetContentOffset->x = targetOffset.x;
+    targetContentOffset->y = targetOffset.y;
+}
+
+- (CGPoint)nearestTargetOffsetForOffset:(CGPoint)offset
+{
+    CGFloat pageSize = self.itemSizeMarigin;
+    NSInteger page = roundf((offset.x) / pageSize);
+    CGFloat targetX = pageSize * page - self.leftRightMargin;
+    return CGPointMake(targetX, offset.y);
 }
 
 @end
@@ -287,17 +314,16 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 
 - (NSArray<UICollectionViewLayoutAttributes *> *)layoutAttributesForElementsInRect:(CGRect)rect
 {
-    NSArray *attributes = [super layoutAttributesForElementsInRect:rect];
-    
-    if (self.itemScale == 1.0 && self.alphaScale == 1.0) {
-        return attributes;
-    }
-    
+    NSArray *attributes = [[NSArray alloc] initWithArray:[super layoutAttributesForElementsInRect:rect] copyItems:YES];
     CGFloat centerX = self.collectionView.contentOffset.x + self.collectionView.bounds.size.width * 0.5;
-    for (UICollectionViewLayoutAttributes *layoutAttributes in attributes) {
-        CGFloat distance = ABS(layoutAttributes.center.x - centerX);
+    for (UICollectionViewLayoutAttributes *layoutAttribute in attributes) {
+        
+        CGFloat distance = ABS(layoutAttribute.center.x - centerX);
         CGFloat scale = self.itemScale + (1 - self.itemScale) * (1 - distance / (self.itemSize.width + self.minimumLineSpacing));
-        layoutAttributes.transform = CGAffineTransformMakeScale(scale, scale);
+        layoutAttribute.transform = CGAffineTransformMakeScale(scale, scale);
+        
+        CGFloat alpha = self.alphaScale + (1 - self.alphaScale) * (1 - distance / (self.itemSize.width + self.minimumLineSpacing));
+        layoutAttribute.alpha = alpha;
     }
     
     if (attributes.count == 1) {
@@ -307,6 +333,7 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
         center.x = self.collectionView.bounds.size.width * 0.5;
         layoutAttributes.center = center;
     }
+    
     return attributes;
 }
 
@@ -314,34 +341,4 @@ static inline NSIndexPath *CircleIndexPath(NSInteger index) {
 {
     return YES;
 }
-
-- (CGPoint)targetContentOffsetForProposedContentOffset:(CGPoint)proposedContentOffset withScrollingVelocity:(CGPoint)velocity {
-    CGFloat proposedContentOffsetCenterX = proposedContentOffset.x + CGRectGetWidth(self.collectionView.bounds) * 0.5;
-    
-    NSArray *layoutAttributesForElements = [self layoutAttributesForElementsInRect:self.collectionView.bounds];
-    
-    UICollectionViewLayoutAttributes *layoutAttributes = layoutAttributesForElements.firstObject;
-    
-    for (UICollectionViewLayoutAttributes *layoutAttributesForElement in layoutAttributesForElements) {
-        if (layoutAttributesForElement.representedElementCategory != UICollectionElementCategoryCell) {
-            continue;
-        }
-        
-        CGFloat distance1 = layoutAttributesForElement.center.x - proposedContentOffsetCenterX;
-        CGFloat distance2 = layoutAttributes.center.x - proposedContentOffsetCenterX;
-        
-        if (fabs(distance1) < fabs(distance2)) {
-            layoutAttributes = layoutAttributesForElement;
-        }
-    }
-    
-    if (layoutAttributes != nil) {
-        return CGPointMake(layoutAttributes.center.x - CGRectGetWidth(self.collectionView.bounds) * 0.5, proposedContentOffset.y);
-    }
-    
-    return [super targetContentOffsetForProposedContentOffset:proposedContentOffset
-                                        withScrollingVelocity:velocity];
-}
-
-
 @end
